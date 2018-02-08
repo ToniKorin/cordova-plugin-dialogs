@@ -38,6 +38,8 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.view.WindowManager;
+import android.view.WindowManager.LayoutParams;
 
 
 /**
@@ -214,12 +216,12 @@ public class Notification extends CordovaPlugin {
                 if (buttonLabels.length() > 0) {
                     try {
                         dlg.setNegativeButton(buttonLabels.getString(0),
-                            new AlertDialog.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                    callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, 1));
-                                }
-                            });
+                                new AlertDialog.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.dismiss();
+                                        callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, 1));
+                                    }
+                                });
                     } catch (JSONException e) {
                         LOG.d(LOG_TAG,"JSONException on first button.");
                     }
@@ -255,8 +257,7 @@ public class Notification extends CordovaPlugin {
                     }
                 }
                 dlg.setOnCancelListener(new AlertDialog.OnCancelListener() {
-                    public void onCancel(DialogInterface dialog)
-                    {
+                    public void onCancel(DialogInterface dialog) {
                         dialog.dismiss();
                         callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, 0));
                     }
@@ -296,7 +297,7 @@ public class Notification extends CordovaPlugin {
                 promptInput.setTextColor(promptInputTextColor);
                 promptInput.setText(defaultText);
                 AlertDialog.Builder dlg = createDialog(cordova); // new AlertDialog.Builder(cordova.getActivity(), AlertDialog.THEME_DEVICE_DEFAULT_LIGHT);
-                dlg.setMessage(message);
+                dlg.setMessage(message); // cannot opt out. null caused crash in version 7.0, even in version 6.0 is ok...
                 dlg.setTitle(title);
                 dlg.setCancelable(true);
                 
@@ -377,7 +378,10 @@ public class Notification extends CordovaPlugin {
                     }
                 });
 
-                changeTextDirection(dlg);
+                AlertDialog dialog = changeTextDirection(dlg);
+                // To show keyboard
+                dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+                dialog.getWindow().setSoftInputMode(LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
             };
         };
         this.cordova.getActivity().runOnUiThread(runnable);
@@ -501,7 +505,7 @@ public class Notification extends CordovaPlugin {
     }
     
     @SuppressLint("NewApi")
-    private void changeTextDirection(Builder dlg){
+    private AlertDialog changeTextDirection(Builder dlg){
         int currentapiVersion = android.os.Build.VERSION.SDK_INT;
         dlg.create();
         AlertDialog dialog =  dlg.show();
@@ -509,5 +513,6 @@ public class Notification extends CordovaPlugin {
             TextView messageview = (TextView)dialog.findViewById(android.R.id.message);
             messageview.setTextDirection(android.view.View.TEXT_DIRECTION_LOCALE);
         }
+        return dialog;
     }
 }
