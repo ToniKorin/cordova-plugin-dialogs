@@ -379,9 +379,11 @@ public class Notification extends CordovaPlugin {
                 });
 
                 AlertDialog dialog = changeTextDirection(dlg);
-                // To show keyboard
+                // To show keyboard, https://stackoverflow.com/questions/4258623/show-soft-keyboard-for-dialog
                 dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
-                dialog.getWindow().setSoftInputMode(LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+                if (promptInput.requestFocus()) {
+                    dialog.getWindow().setSoftInputMode(LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+                }
             };
         };
         this.cordova.getActivity().runOnUiThread(runnable);
